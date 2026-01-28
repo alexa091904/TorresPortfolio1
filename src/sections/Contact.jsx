@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import emailjs from 'emailjs-com'
 import {
   FaEnvelope,
   FaPhone,
@@ -30,6 +31,12 @@ const Contact = () => {
 
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  // Initialize EmailJS
+  useEffect(() => {
+    emailjs.init('ndZ-aYUtVnxutpZ6h')
+  }, [])
 
   // Contact information
   const contactInfo = [
@@ -71,16 +78,34 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const templateParams = {
+        to_email: 'alextorres9194@gmail.com',
+        from_name: formData.name,
+        from_email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      }
+
+      await emailjs.send(
+        'service_fqk2w2q',
+        'template_4pl90ks',
+        templateParams
+      )
+
       setSubmitted(true)
       setFormData({ name: '', email: '', subject: '', message: '' })
-      setLoading(false)
 
       // Reset success message after 5 seconds
       setTimeout(() => setSubmitted(false), 5000)
-    }, 1000)
+    } catch (err) {
+      setError('Failed to send message. Please try again later.')
+      console.error('Email error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const containerVariants = {
@@ -184,6 +209,15 @@ const Contact = () => {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-red-500/20 border border-red-500 rounded-lg p-3 text-red-300 text-sm"
+                  >
+                    {error}
+                  </motion.div>
+                )}
                 {/* Name Input */}
                 <div>
                   <label htmlFor="name" className="block text-sm font-semibold mb-2">
